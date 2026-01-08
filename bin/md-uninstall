@@ -58,58 +58,35 @@ function copyFile()
 		panic $? "Failed to copy file $1 to $2"
 }
 
-#还原文件
 function restoreFile()
 {
 	local filePath="$1"
 	local backedUpFilePath="${filePath}${backupFileExt}"
-	
 	if [[ -f "$backedUpFilePath" ]]; then
-		copyFile "$backedUpFilePath" "$filePath"	
+		copyFile "$backedUpFilePath" "$filePath"
 		rm -f "$backedUpFilePath"
 	fi
 }
 
-#获取SDK信息
-function getSdkProperty()
-{
-	$setCmd
-
-	local sdk="$1"
-	local propertyName="$2"
-
-	propertyValue=`xcodebuild -version -sdk $sdk $propertyName` || \
-		panic $? "Failed to get $sdk SDK property $propertyName"
-
-	[[ $propertyValue != "" ]] || \
-		panic 1 "Value of $sdk SDK property $propertyName cannot be empty"
-
-	# return #
-	echo "$propertyValue"
-}
-
 echo "Uninstalling MonkeyDev base, Xcode templates and framework header files..."
-	
-#删除文件夹
+
 rm -rf "$MonkeyDevPath" || \
 	panic $? "Failed to remove directory: $MonkeyDevPath"
 
-#移除模块符号链接
 userDevDir="$userHome/Library/Developer"
 userTemplatesDir="$userDevDir/Xcode/Templates"
 symlinkPath="$userTemplatesDir/MonkeyDev"
 
 rm -f "$symlinkPath" || \
 	panic $? "Failed to remove file: $symlinkPath"
-		
-#移除profile环境变量
+
 for f in "${bashProfileFiles[@]}"; do
 	if [[ -f "$f" ]]; then
 		userBashProfileFile="$f"
 		break
 	fi
 done
-	
+
 if [[ $userBashProfileFile != "" ]]; then
 	sed -i "" "s/^export MonkeyDevPath=.*$//g" "$userBashProfileFile"
 	sed -i "" "s/^export MonkeyDevDeviceIP=.*$//g" "$userBashProfileFile"
@@ -117,11 +94,8 @@ if [[ $userBashProfileFile != "" ]]; then
 	sed -i "" "s/^export PATH=.*\$MonkeyDevPath\\/bin:.*$//g" "$userBashProfileFile"
 fi
 
-iosSdkPlatformPath=`getSdkProperty iphoneos PlatformPath`
+specificationFile=$(find /Applications/Xcode.app -name "Embedded-Device.xcspec" | head -n 1)
 
-specificationFile=$(cd $iosSdkPlatformPath/../../.. && pwd)/PlugIns/IDEiOSSupportCore.ideplugin/Contents/Resources/Embedded-Device.xcspec
-
-#还原文件
 restoreFile "$specificationFile"
 
 exit 0
