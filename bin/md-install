@@ -369,20 +369,24 @@ hasProductTypeForCommandLineTool=`doesFileContain "$specificationFile" 'com.appl
 
 macosxSDKSpecificationsPath="$(cd $macosSdkPlatformPath/../../.. && pwd)/PlugIns/XCBSpecifications.ideplugin/Contents/Resources"
 # echo $macosxSDKSpecificationsPath
-packageTypesForMacOSXPath=$(find /Applications/Xcode.app -name "MacOSX Package Types.xcspec" | head -n 1)
-productTypesForMacOSXPath=$(find /Applications/Xcode.app -name "MacOSX Product Types.xcspec" | head -n 1)
+# packageTypesForMacOSXPath=$(find /Applications/Xcode.app -name "MacOSX Package Types.xcspec" | head -n 1)
+# productTypesForMacOSXPath=$(find /Applications/Xcode.app -name "MacOSX Product Types.xcspec" | head -n 1)
 
+packageTypesForMacOSXPath=$(find /Applications/Xcode.app -name "macOSPackageTypes.xcspec" | head -n 1)
+productTypesForMacOSXPath=$(find /Applications/Xcode.app -name "macOSPackageTypes.xcspec" | head -n 1)
 
 
 requireFile "$packageTypesForMacOSXPath" false
 requireFile "$productTypesForMacOSXPath" false
 
 if [[ $hasPackageTypeForCommandLineTool != "true" ]]; then
+	echo "Add package-type.mach-o-executable to $specificationFile"
 	machoDict=`readXcodeSpecificationById "$packageTypesForMacOSXPath" "com.apple.package-type.mach-o-executable"`
 	writeDictToSpecification "$specificationFile" "$machoDict"
 fi
 
 if [[ $hasProductTypeForCommandLineTool != "true" ]]; then
+	echo "Add product-type.tool to $specificationFile"
 	toolDict=`readXcodeSpecificationById "$productTypesForMacOSXPath" "com.apple.product-type.tool"`
 	writeDictToSpecification "$specificationFile" "$toolDict"
 fi
